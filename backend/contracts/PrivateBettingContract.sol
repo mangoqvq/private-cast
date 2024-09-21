@@ -51,10 +51,10 @@ contract PrivateBettingContract {
         require(msg.value > 0, "Bet amount must be greater than zero");
         require(bytes(oracleOutcomes[topic]).length == 0, "Outcome is out, cannot bet");
         
-        // make sure this person never placed a bet with this nullifier
-		if (nullifierHashes[nullifierHash]) revert InvalidNullifier();
-
         // DISABLED FOR OASIS SAPPHIRE DEPLOYMENT. UNCOMMENT FOR ETHEREUM SEPOLIA
+        // make sure this person never placed a bet with this nullifier
+		// if (nullifierHashes[nullifierHash]) revert InvalidNullifier();
+
 		// // We now verify the provided proof is valid and the user is verified by World ID
 		// worldId.verifyProof(
 		// 	root,

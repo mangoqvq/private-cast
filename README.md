@@ -59,3 +59,5 @@ pnpm install && pnpm dev
 ## Deployed site
 
 https://aesthetic-centaur-ad2524.netlify.app/#/
+
+Example transaction: https://explorer.stg.oasis.io/testnet/sapphire/tx/0xe6fcc95d52611a7275d187dc6e29b075f449285809f8de921b065bf5d73a4098
