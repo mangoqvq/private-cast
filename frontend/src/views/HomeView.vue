@@ -57,7 +57,7 @@ async function fetchAndSetBets(): Promise<Message | null> {
     allBetsVal.value = retrievedMessage.allbets;
     myBetsVal.value = retrievedMessage.myBets;
     totalPool.value = await messageBox.value!.getContractBalance();
-    mypayout.value = await messageBox.value!.getUserBalance(eth.address!);
+    // mypayout.value = await messageBox.value!.getUserBalance(eth.address!);
 
     return retrievedMessage;
   } catch (e) {
@@ -108,7 +108,7 @@ async function bet(winner: string) {
     errors.value.splice(0, errors.value.length);
     isSettingMessage.value = true;
 
-    await messageBox.value!.placeBet('winner', winner, {value: amount});
+    await messageBox.value!.placeBet('winner', winner, "0x636680ec68C513cFBd64e46eB8368a4d40f4248e", "1", "2", ["1", "2", "3", "4", "5", "6", "7", "8"], { value: amount });
 
     await retry<Promise<Message | null>>(fetchAndSetBets, (retrievedMessage) => {
       return retrievedMessage;

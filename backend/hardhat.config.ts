@@ -45,7 +45,8 @@ task('deploy')
     // For deployment unwrap the provider to enable contract verification.
     const uwProvider = new JsonRpcProvider(hre.network.config.url);
     const PrivateBettingContract = await hre.ethers.getContractFactory('PrivateBettingContract', new hre.ethers.Wallet(accounts[0], uwProvider));
-    const privateBetting = await PrivateBettingContract.deploy();
+    // hardcode dummy values
+    const privateBetting = await PrivateBettingContract.deploy("0x636680ec68C513cFBd64e46eB8368a4d40f4248e", "b", "c");
     await privateBetting.waitForDeployment();
 
     console.log(`privateBetting address: ${await privateBetting.getAddress()}`);

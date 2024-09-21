@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import { ByteHasher } from "./ByteHasher.sol";
+import { IWorldID } from "./IWorldID.sol";
+
 contract PrivateBettingContract {
+    using ByteHasher for bytes;
     struct Bet {
         address user;
         uint256 amount;
@@ -12,6 +16,21 @@ contract PrivateBettingContract {
         uint256 index; // Index of the bet
     }
 
+	/// @notice Thrown when attempting to reuse a nullifier
+	error InvalidNullifier();
+
+	/// @dev The World ID instance that will be used for verifying proofs
+	IWorldID internal immutable worldId;
+
+	/// @dev The contract's external nullifier hash
+	uint256 internal immutable externalNullifier;
+
+	/// @dev The World ID group ID (always 1)
+	uint256 internal immutable groupId = 1;
+
+	/// @dev Whether a nullifier hash has been used already. Used to guarantee an action is only performed once by a single person
+	mapping(uint256 => bool) internal nullifierHashes;
+    
     address public owner;
     mapping(address => Bet[]) public userBets;
     mapping(address => bool) public verifiedUsers;
@@ -21,14 +40,34 @@ contract PrivateBettingContract {
     event BetPlaced(address indexed user, uint256 amount, string choice);
     event BetSettled(address indexed user, uint256 amount, uint256 payout);
 
-    constructor() {
+    constructor(IWorldID _worldId, string memory _appId, string memory _actionId) {
+    worldId = _worldId;
+		externalNullifier = abi.encodePacked(abi.encodePacked(_appId).hashToField(), _actionId).hashToField();
         owner = msg.sender;
     }
 
     // Function to place a bet
-    function placeBet(string memory topic, string memory choice) external payable {
+    function placeBet(string memory topic, string memory choice, address signal, uint256 root, uint256 nullifierHash, uint256[8] calldata proof) external payable {
         require(msg.value > 0, "Bet amount must be greater than zero");
         require(bytes(oracleOutcomes[topic]).length == 0, "Outcome is out, cannot bet");
+        
+        // make sure this person never placed a bet with this nullifier
+		if (nullifierHashes[nullifierHash]) revert InvalidNullifier();
+
+        // DISABLED FOR OASIS SAPPHIRE DEPLOYMENT. UNCOMMENT FOR ETHEREUM SEPOLIA
+		// // We now verify the provided proof is valid and the user is verified by World ID
+		// worldId.verifyProof(
+		// 	root,
+		// 	groupId,
+		// 	abi.encodePacked(signal).hashToField(),
+		// 	nullifierHash,
+		// 	externalNullifier,
+		// 	proof
+		// );
+
+		// We now record the user has done this, so they can't do it again (proof of uniqueness)
+		nullifierHashes[nullifierHash] = true;
+
         // Create a new bet
         uint256 index = userBets[msg.sender].length + 1;
         Bet memory newBet = Bet({
