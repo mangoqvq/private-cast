@@ -58,3 +58,4 @@ pnpm install && pnpm dev
 
 ## Deployed site
 
+https://aesthetic-centaur-ad2524.netlify.app/#/
