@@ -31,13 +31,13 @@ function handleError(error: Error, errorMessage: string) {
 }
 
 async function fetchMessage(): Promise<Message> {
-  const message = await messageBox.value!.message();
-  const author = await messageBox.value!.author();
+  const message = await messageBox.value!.owner();
+  const author = await messageBox.value!.owner();
 
   return { message, author };
 }
 
-async function fetchAndSetMessageValues(): Promise<Message | null> {
+async function fetchAndSetBets(): Promise<Message | null> {
   let retrievedMessage: Message | null = null;
 
   try {
@@ -55,37 +55,6 @@ async function fetchAndSetMessageValues(): Promise<Message | null> {
   return retrievedMessage;
 }
 
-// async function setMessage(e: Event): Promise<void> {
-//   if (e.target instanceof HTMLFormElement) {
-//     e.target.checkValidity();
-//     if (!e.target.reportValidity()) return;
-//   }
-
-//   e.preventDefault();
-
-//   try {
-//     const newMessageValue = newMessage.value;
-//     errors.value.splice(0, errors.value.length);
-//     isSettingMessage.value = true;
-
-//     await messageBox.value!.setMessage(newMessageValue);
-
-//     await retry<Promise<Message | null>>(fetchAndSetMessageValues, (retrievedMessage) => {
-//       if (retrievedMessage?.message !== newMessageValue) {
-//         throw new Error('Unable to determine if the new message has been correctly set!');
-//       }
-
-//       return retrievedMessage;
-//     });
-
-//     newMessage.value = '';
-//   } catch (e: any) {
-//     handleError(e, 'Failed to set message');
-//   } finally {
-//     isSettingMessage.value = false;
-//   }
-// }
-
 async function switchNetwork() {
   await eth.switchNetwork(Network.FromConfig);
 }
@@ -101,7 +70,7 @@ async function connectAndSwitchNetwork() {
 
 onMounted(async () => {
   await connectAndSwitchNetwork();
-  await fetchAndSetMessageValues();
+  await fetchAndSetBets();
 });
 
 // Assuming winners is defined somewhere in your component
@@ -115,16 +84,33 @@ function setWinner(winner: string, value: boolean) {
 }
 
 // Call setMessage when Bet button is clicked
-function bet(winner: string) {
+function bet(winner: string, e: Event) {
   const amount = amounts.value[winner] || 0; // Get the entered amount
   const choice = selectedWinner.value[winner] === true ? 'Yes' : 'No'; // Determine the choice
-  setMessage(winner, choice, amount); // Pass winner, choice, and amount to setMessage
+  setMessage(winner, choice, amount, e); // Pass winner, choice, and amount to setMessage
 }
 
-async function setMessage(winner: string, choice: string, amount: number) {
-  // Log the choice and amount
+async function setMessage(winner: string, choice: string, amount: number, e: Event) {
   console.log(`Placing bet on ${winner}: Choice = ${choice}, Amount = ${amount}`);
-  // Implement your message-setting logic here
+  try {
+    const newMessageValue = winner;
+    errors.value.splice(0, errors.value.length);
+    isSettingMessage.value = true;
+
+    // await messageBox.value!.setMessage(newMessageValue);
+
+    await retry<Promise<Message | null>>(fetchAndSetBets, (retrievedMessage) => {
+      if (retrievedMessage?.message !== newMessageValue) {
+        throw new Error('Unable to determine if the new message has been correctly set!');
+      }
+
+      return retrievedMessage;
+    });
+  } catch (e: any) {
+    handleError(e, 'Failed to set message');
+  } finally {
+    isSettingMessage.value = false;
+  }
 }
 </script>
 
@@ -132,7 +118,7 @@ async function setMessage(winner: string, choice: string, amount: number) {
   <section class="pt-5" v-if="isCorrectNetworkSelected">
     <h1 class="capitalize text-2xl text-white font-bold mb-4">Private Cast</h1>
 
-    <h2 class="capitalize text-xl text-white font-bold mb-4">Active message</h2>
+    <h2 class="capitalize text-xl text-white font-bold mb-4">Prediction Market</h2>
 
     <div class="message p-6 mb-6 rounded-xl border-2 border-gray-300" v-if="!isLoading">
       <div class="flex items-center justify-between">

@@ -1,3 +1,3 @@
 export {
-    MessageBox, MessageBox__factory,
+    PrivateBettingContract, PrivateBettingContract__factory
 } from "../typechain-types"

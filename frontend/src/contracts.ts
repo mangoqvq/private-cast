@@ -1,15 +1,15 @@
 import type { ComputedRef } from 'vue';
 import { computed } from 'vue';
 
-import { type MessageBox, MessageBox__factory } from '@oasisprotocol/demo-starter-backend';
-export type { MessageBox } from '@oasisprotocol/demo-starter-backend';
+import { type PrivateBettingContract, PrivateBettingContract__factory } from '@oasisprotocol/demo-starter-backend';
+export type { PrivateBettingContract } from '@oasisprotocol/demo-starter-backend';
 
 import { useEthereumStore } from './stores/ethereum';
 import { type ContractRunner, VoidSigner } from 'ethers';
 
 const addr = import.meta.env.VITE_MESSAGE_BOX_ADDR!;
 
-export function useMessageBox(): ComputedRef<MessageBox | null> {
+export function useMessageBox(): ComputedRef<PrivateBettingContract | null> {
   const eth = useEthereumStore();
 
   return computed(() => {
@@ -23,7 +23,7 @@ export function useMessageBox(): ComputedRef<MessageBox | null> {
       return null;
     }
 
-    return MessageBox__factory.connect(addr, eth.signer as ContractRunner);
+    return PrivateBettingContract__factory.connect(addr, eth.signer as ContractRunner);
   });
 }
 
@@ -35,7 +35,7 @@ function initializeSigner(eth: ReturnType<typeof useEthereumStore>) {
   return signer;
 }
 
-export function useUnwrappedMessageBox(): ComputedRef<MessageBox | null> {
+export function useUnwrappedMessageBox(): ComputedRef<PrivateBettingContract | null> {
   const eth = useEthereumStore();
   return computed(() => {
     if (!eth) {
@@ -49,6 +49,6 @@ export function useUnwrappedMessageBox(): ComputedRef<MessageBox | null> {
       return null;
     }
 
-    return MessageBox__factory.connect(addr, signer);
+    return PrivateBettingContract__factory.connect(addr, signer);
   });
 }

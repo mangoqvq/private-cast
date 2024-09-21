@@ -10,7 +10,7 @@ Set up cli wallet with test tokens following [here](https://github.com/oasisprot
 cd backend/
 pnpm build
 export PRIVATE_KEY=0x...  # from `oasis wallet show`
-npx hardhat compile
+pnpm run build
 npx hardhat deploy --network sapphire-testnet
 ```
 

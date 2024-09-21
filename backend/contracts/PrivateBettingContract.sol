@@ -12,6 +12,7 @@ contract PrivateBettingContract {
 
     address public owner;
     mapping(address => Bet[]) public userBets; // Mapping of user address to their bets
+    mapping(address => bool) public verifiedUsers;
 
     // Events for logging
     event BetPlaced(address indexed user, uint256 amount, string choice);
@@ -25,7 +26,7 @@ contract PrivateBettingContract {
     // Function to place a bet
     function placeBet(string memory choice) external payable {
         require(msg.value > 0, "Bet amount must be greater than zero");
-
+        require(verifiedUsers[msg.sender], "You must be a verified user to place a bet");
         // Create a new bet
         Bet memory newBet = Bet({
             user: msg.sender,
