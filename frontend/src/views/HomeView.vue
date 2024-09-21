@@ -32,10 +32,8 @@ function handleError(error: Error, errorMessage: string) {
 
 async function fetchMessage(): Promise<Message> {
   let bets = await messageBox.value!.getAllBets();
-  console.log('bets', bets);
-  const message = (bets).map((bet) => bet.choice).join(' gg');
+  const message = (bets).map((bet) => `${bet.user} ${bet.choice} (${bet.amount})`).join(' ');
   const author = await messageBox.value!.owner();
-
   return { message, author };
 }
 
@@ -103,10 +101,6 @@ async function setMessage(winner: string, choice: string, amount: number) {
     await messageBox.value!.placeBet(choice, {value: amount});
 
     await retry<Promise<Message | null>>(fetchAndSetBets, (retrievedMessage) => {
-      if (retrievedMessage?.message !== newMessageValue) {
-        throw new Error('Unable to determine if the new message has been correctly set!');
-      }
-
       return retrievedMessage;
     });
   } catch (e: any) {
@@ -121,15 +115,11 @@ async function setMessage(winner: string, choice: string, amount: number) {
   <section class="pt-5" v-if="isCorrectNetworkSelected">
     <h1 class="capitalize text-2xl text-white font-bold mb-4">Private Cast</h1>
 
-    <h2 class="capitalize text-xl text-white font-bold mb-4">Prediction Market</h2>
+    <h2 class="capitalize text-xl text-white font-bold mb-4">All bets</h2>
 
     <div class="message p-6 mb-6 rounded-xl border-2 border-gray-300" v-if="!isLoading">
       <div class="flex items-center justify-between">
         <h2 class="text-lg lg:text-lg m-0">{{ message }}</h2>
-        <div class="flex items-center flex-shrink-0">
-          <JazzIcon class="mr-2" :size="20" :address="author" />
-          <abbr :title="author" class="font-mono block no-underline">{{ abbrAddr(author) }}</abbr>
-        </div>
       </div>
     </div>
     <div v-else>
@@ -166,7 +156,7 @@ async function setMessage(winner: string, choice: string, amount: number) {
             placeholder="Amount"
             class="border border-gray-300 p-1 rounded mr-2"
           />
-          <AppButton type="submit" variant="primary" :disabled="isSettingMessage" @click="bet(winner)">
+          <AppButton type="submit" variant="primary"  @click="bet(winner)">
             <span v-if="isSettingMessage">Setting…</span>
             <span v-else>Bet</span>
           </AppButton>

@@ -14,7 +14,6 @@ contract PrivateBettingContract {
     mapping(address => Bet[]) public userBets;
     mapping(address => bool) public verifiedUsers;
     address[] public users;
-    // Events for logging
     event BetPlaced(address indexed user, uint256 amount, string choice);
     event BetSettled(address indexed user, uint256 amount, uint256 payout);
 
@@ -35,6 +34,7 @@ contract PrivateBettingContract {
             payout: 0
         });
         userBets[msg.sender].push(newBet);
+        users.push(msg.sender);
         emit BetPlaced(msg.sender, msg.value, choice);
     }
 

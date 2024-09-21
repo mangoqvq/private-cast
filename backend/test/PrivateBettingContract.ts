@@ -31,6 +31,8 @@ describe("PrivateBettingContract", function () {
     expect(bets[0].amount).to.equal(betAmount);
     expect(bets[0].choice).to.equal("Team A");
     expect(bets[0].settled).to.equal(false);
+    const allbets = await bettingContract.getAllBets();
+    expect(allbets.length).to.equal(1);
   });
 
   // it("Should not allow a user to place a bet with zero amount", async function () {
