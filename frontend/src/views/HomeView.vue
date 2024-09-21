@@ -16,7 +16,6 @@ const uwMessageBox = useUnwrappedMessageBox();
 const errors = ref<string[]>([]);
 const message = ref('');
 const author = ref('');
-const newMessage = ref('');
 const isLoading = ref(true);
 const isSettingMessage = ref(false);
 const isCorrectNetworkSelected = ref<Boolean>(true);
@@ -106,7 +105,7 @@ onMounted(async () => {
 });
 
 // Assuming winners is defined somewhere in your component
-const winners = ['Lando', 'Oscar', 'Charles']; // Example winners
+const winners = ref(['Lando', 'Oscar', 'Charles']); // Example winners
 const amounts = ref<{ [key: string]: number }>({});
 const selectedWinner = ref<{ [key: string]: boolean | null }>({});
 
@@ -156,7 +155,7 @@ async function setMessage(winner: string, choice: string, amount: number) {
     </p>
 
   <div>
-    <div class="bg-gray-800 p-4 rounded-lg mb-4">
+    <div class="p-4 rounded-lg mb-4">
       <div v-for="winner in winners" :key="winner" class="mb-4">
         <div class="flex items-center">
           <div class="text-lg text-white">{{ winner }}</div>
