@@ -33,9 +33,28 @@ npx hardhat compile
 npx hardhat test
 ```
 
+## Custom deploy for Worldcoin
+Since Worldcoin is not officially deployed on Oasis Sapphire, an identical contract is deployed on Ethereum Sepolia to mirror onchain proof verify. But on Oasis' contract, the verify is disabled. (Per instructed after discussing with the folks at Worldcoin booth!)
+
+
+```
+cd backend/contracts/
+
+forge build
+
+forge create --rpc-url https://eth-sepolia.g.alchemy.com/v2/KWfOK-fU4mMPJ4BEQa3pJibaUygfHT9I --private-key 0x... src/PrivateBettingContract.sol:PrivateBettingContract --constructor-args 0x469449f251692e0779667583026b5a1e99512157 app_staging_f72dd6bf077c6464c43c5016d2b9cec5 place-bet
+
+Deployer: 0x25F101BD751f4915694880a5Ef8b3D9e765a03aB
+Deployed to: 0x636680ec68C513cFBd64e46eB8368a4d40f4248e
+Transaction hash: 0xf906fd62c36c47e065480a9dce24301f8d9ffa13a5d0c3c2f476ecae2d50b712
+```
+
 ## Run frontend
 
 ```
 cd frontend/
 pnpm install && pnpm dev
 ```
+
+## Deployed site
+
