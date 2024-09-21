@@ -9,6 +9,9 @@ export default defineConfig({
   build: {
     sourcemap: true,
   },
+  esbuild: {
+    target: 'esnext'  // or specify modern browsers, e.g. 'chrome90', 'firefox90', etc.
+  },
   // define: {
   //   __VUE_OPTIONS_API__: false
   // },

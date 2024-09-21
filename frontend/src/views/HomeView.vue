@@ -6,7 +6,7 @@ import { Network, useEthereumStore } from '../stores/ethereum';
 import AppButton from '@/components/AppButton.vue';
 import MessageLoader from '@/components/MessageLoader.vue';
 import { retry } from '@/utils/promise';
-
+// import { IDKitWidget, VerificationLevel } from '@worldcoin/idkit'
 
 const eth = useEthereumStore();
 const messageBox = usePrivateBettingContract();
@@ -22,6 +22,7 @@ const isSettingMessage = ref(false);
 const isCorrectNetworkSelected = ref<Boolean>(true);
 const totalPool = ref<bigint>(BigInt(0));
 const mypayout = ref<bigint>(BigInt(0));
+const proof = ref('');
 
 interface Message {
   allbets: string[];
@@ -108,6 +109,7 @@ async function bet(winner: string) {
     errors.value.splice(0, errors.value.length);
     isSettingMessage.value = true;
 
+    // use dummy worldcoin signals
     await messageBox.value!.placeBet('winner', winner, "0x636680ec68C513cFBd64e46eB8368a4d40f4248e", "1", "2", ["1", "2", "3", "4", "5", "6", "7", "8"], { value: amount });
 
     await retry<Promise<Message | null>>(fetchAndSetBets, (retrievedMessage) => {
@@ -118,6 +120,10 @@ async function bet(winner: string) {
   } finally {
     isSettingMessage.value = false;
   }
+}
+
+async function verifyAsHuman() {
+  console.log(`verifyAsHuman done!`);
 }
 
 async function claimFunds(index: number, topic: string) {
@@ -147,8 +153,22 @@ async function setOutcome(topic: string, outcome: string) {
   <section class="pt-5" v-if="isCorrectNetworkSelected">
     <h1 class="capitalize text-2xl text-white font-bold mb-4">Private Cast</h1>
     <p class="text-base text-white mb-10">
-      Cast your vote and the betting amount, fully private onchain.
+      A fully private prediction market, for verified human only. Built with Oasis Sapphire (for confidential smart contracts) and Worldcoin (for proof of humanity). 
     </p>
+    <!-- <IDKitWidget
+      app_id="app_staging_4878ad8bbe0be4841f48f09669175677"
+      action="place-bet"
+      :signal="eth.address!"
+      @success="onSuccess"
+    >
+      <template v-slot:default="{ open }">
+        <button @click="open">Verify with World ID</button>
+      </template>
+    </IDKitWidget> -->
+    <AppButton type="submit" variant="primary"  @click="verifyAsHuman()">
+      <span v-if="isSettingMessage">Setting…</span>
+      <span v-else>Verify as Human First</span>
+    </AppButton>
     <h2 class="capitalize text-xl text-white font-bold mb-4">Total bet pool: {{totalPool}} TEST</h2>
     <h2 class="capitalize text-xl text-white font-bold mb-4">Who will be the winner for Singapore Grand Prix?</h2>
   <div>
@@ -209,7 +229,7 @@ async function setOutcome(topic: string, outcome: string) {
   </div>
 
   <h2 class="capitalize text-xl text-white font-bold mb-4">Outcome: {{outcomeVal}}</h2>
-  <p class="capitalize text-xl text-white mb-4">My payout: todo</p>
+  <!-- <p class="capitalize text-xl text-white mb-4">My payout: todo</p> -->
   <h2 class="capitalize text-xl text-white font-bold mb-4">My Bets</h2>
   <div class="message p-6 mb-6 rounded-xl border-2 border-gray-300" v-if="!isLoading">
     <div v-if="myBetsVal.length > 0">

@@ -1,6 +1,6 @@
 # private-cast
 
-A Human-Verified Prediction Market where votes and fund distribution stays fully private, built using Oasis Sapphire (for confidential smart contracts) and Worldcoin (for proof of humanity). 
+A Human-Verified Prediction Market where votes and fund distribution stays fully private, built with Oasis Sapphire (for confidential smart contracts) and Worldcoin (for proof of humanity). 
 
 ## Deploy smart contract
 
@@ -34,8 +34,8 @@ npx hardhat test
 ```
 
 ## Custom deploy for Worldcoin
-Since Worldcoin is not officially deployed on Oasis Sapphire, an identical contract is deployed on Ethereum Sepolia to mirror onchain proof verify. But on Oasis' contract, the verify is disabled. (Per instructed after discussing with the folks at Worldcoin booth!)
 
+Since Worldcoin is not officially deployed on Oasis Sapphire, an identical contract is deployed on Ethereum Sepolia to fully simulate the onchain proof verify function, whereas on the contract deployed on Oasis Sapphire, the verify call is disabled. (Per instructed after discussing with the folks at Worldcoin booth!)
 
 ```
 cd backend/contracts/
