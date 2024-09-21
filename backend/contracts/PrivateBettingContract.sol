@@ -5,9 +5,11 @@ contract PrivateBettingContract {
     struct Bet {
         address user;
         uint256 amount;
+        string topic; // winner for f1
         string choice; // charles, oscar, lando
         bool settled;  // Status of the bet
         uint256 payout; // Amount to be paid out if the bet wins
+        uint256 index; // Index of the bet
     }
 
     address public owner;
@@ -24,16 +26,19 @@ contract PrivateBettingContract {
     }
 
     // Function to place a bet
-    function placeBet(string memory choice) external payable {
+    function placeBet(string memory topic, string memory choice) external payable {
         require(msg.value > 0, "Bet amount must be greater than zero");
-        // require(verifiedUsers[msg.sender], "You must be a verified user to place a bet");
+        require(bytes(oracleOutcomes[topic]).length == 0, "Outcome is out, cannot bet");
         // Create a new bet
+        uint256 index = userBets[msg.sender].length + 1;
         Bet memory newBet = Bet({
             user: msg.sender,
             amount: msg.value,
+            topic: topic,
             choice: choice,
             settled: false,
-            payout: 0
+            payout: 0,
+            index: index
         });
         userBets[msg.sender].push(newBet);
         users.push(msg.sender);
@@ -45,9 +50,8 @@ contract PrivateBettingContract {
         oracleOutcomes[topic] = choice;
     }
 
-    // Function to get bets of a user
-    function getBets(address user) external view returns (Bet[] memory) {
-        return userBets[user];
+    function getOutcome(string memory topic) external view returns (string memory) {
+        return oracleOutcomes[topic];
     }
 
     function getAllBets() external view returns (Bet[] memory) {

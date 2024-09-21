@@ -14,6 +14,18 @@ pnpm run build
 npx hardhat deploy --network sapphire-testnet
 ```
 
+If deployed is successful, find contract in console, e.g:
+
+```
+privateBetting address: 0x8D2590Cd6a283D9F62B81d7c5Ef5079A18E5cEA2
+```
+
+Put this value at `.env.development`:
+
+```
+VITE_MESSAGE_BOX_ADDR=0x8D2590Cd6a283D9F62B81d7c5Ef5079A18E5cEA2
+```
+
 To test:
 
 ```
