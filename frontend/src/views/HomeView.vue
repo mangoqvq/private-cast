@@ -14,15 +14,17 @@ const messageBox = usePrivateBettingContract();
 const uwMessageBox = useUnwrappedMessageBox();
 
 const errors = ref<string[]>([]);
-const message = ref('');
-const author = ref('');
+const allBetsVal = ref<string[]>([]);
+const outcome = ref('');
+const myBetsVal = ref<string[]>([]);
 const isLoading = ref(true);
 const isSettingMessage = ref(false);
 const isCorrectNetworkSelected = ref<Boolean>(true);
 
 interface Message {
-  message: string;
+  allbets: string[];
   author: string;
+  myBets: string[];
 }
 
 function handleError(error: Error, errorMessage: string) {
@@ -32,9 +34,13 @@ function handleError(error: Error, errorMessage: string) {
 
 async function fetchMessage(): Promise<Message> {
   let bets = await messageBox.value!.getAllBets();
-  const message = (bets).map((bet) => `${bet.user} ${bet.choice} (${bet.amount})`).join(' ');
+  console.log('bets', bets);
   const author = await messageBox.value!.owner();
-  return { message, author };
+  const allbets = (bets).map((bet) => `${bet.user} placed a bet on ${bet.choice} for amount ${bet.amount}`);
+  console.log('eth.address', eth.address);
+  const filteredBets = bets.filter((bet) => bet.user.toLowerCase() === eth.address!.toLowerCase());
+  const myBets = (filteredBets).map((bet) => `${bet.choice} for amount ${bet.amount}`);
+  return { allbets, author, myBets };
 }
 
 async function fetchAndSetBets(): Promise<Message | null> {
@@ -42,10 +48,8 @@ async function fetchAndSetBets(): Promise<Message | null> {
 
   try {
     retrievedMessage = await fetchMessage();
-    console.log('retrievedMessage', retrievedMessage);
-    message.value = retrievedMessage.message;
-    author.value = retrievedMessage.author;
-
+    allBetsVal.value = retrievedMessage.allbets;
+    myBetsVal.value = retrievedMessage.myBets;
     return retrievedMessage;
   } catch (e) {
     handleError(e as Error, 'Failed to get message');
@@ -79,26 +83,15 @@ const winners = ref(['Lando', 'Oscar', 'Charles']); // Example winners
 const amounts = ref<{ [key: string]: number }>({});
 const selectedWinner = ref<{ [key: string]: boolean | null }>({});
 
-// Set the winner and highlight the selected button
-function setWinner(winner: string, value: boolean) {
-  selectedWinner.value[winner] = value;
-}
-
-// Call setMessage when Bet button is clicked
-function bet(winner: string) {
+// Call bet when Bet button is clicked
+async function bet(winner: string) {
   const amount = amounts.value[winner] || 0; // Get the entered amount
-  const choice = selectedWinner.value[winner] === true ? 'Yes' : 'No'; // Determine the choice
-  setMessage(winner, choice, amount); // Pass winner, choice, and amount to setMessage
-}
-
-async function setMessage(winner: string, choice: string, amount: number) {
-  console.log(`Placing bet on ${winner}: Choice = ${choice}, Amount = ${amount}`);
+  console.log(`Placing bet on ${winner}, Amount = ${amount}`);
   try {
-    const newMessageValue = winner;
     errors.value.splice(0, errors.value.length);
     isSettingMessage.value = true;
 
-    await messageBox.value!.placeBet(choice, {value: amount});
+    await messageBox.value!.placeBet(winner, {value: amount});
 
     await retry<Promise<Message | null>>(fetchAndSetBets, (retrievedMessage) => {
       return retrievedMessage;
@@ -109,24 +102,33 @@ async function setMessage(winner: string, choice: string, amount: number) {
     isSettingMessage.value = false;
   }
 }
+
+async function claimFunds(winner: number) {
+  const amount = amounts.value[winner] || 0; // Get the entered amount
+  console.log(`Placing bet on ${winner}, Amount = ${amount}`);
+  try {
+    await messageBox.value!.claimFunds(winner, {value: amount});
+  } catch (e: any) {
+    handleError(e, 'Failed to set message');
+  } finally {
+    isSettingMessage.value = false;
+  }
+}
+
+async function setOutcome(winner: string) {
+  console.log(`Setting outcome ${winner}`);
+  try {
+    await messageBox.value!.setOutcome(winner);
+
+  } catch (e: any) {
+    handleError(e, 'Failed to set message');
+  }
+}
 </script>
 
 <template>
   <section class="pt-5" v-if="isCorrectNetworkSelected">
     <h1 class="capitalize text-2xl text-white font-bold mb-4">Private Cast</h1>
-
-    <h2 class="capitalize text-xl text-white font-bold mb-4">All bets</h2>
-
-    <div class="message p-6 mb-6 rounded-xl border-2 border-gray-300" v-if="!isLoading">
-      <div class="flex items-center justify-between">
-        <h2 class="text-lg lg:text-lg m-0">{{ message }}</h2>
-      </div>
-    </div>
-    <div v-else>
-      <div class="message p-6 pt-4 mb-6 rounded-xl border-2 border-gray-300">
-        <MessageLoader />
-      </div>
-    </div>
 
     <h2 class="capitalize text-xl text-white font-bold mb-4">Singapore Grand Prix Winner</h2>
     <p class="text-base text-white mb-10">
@@ -138,18 +140,6 @@ async function setMessage(winner: string, choice: string, amount: number) {
       <div v-for="winner in winners" :key="winner" class="mb-4">
         <div class="flex items-center">
           <div class="text-lg text-white">{{ winner }}</div>
-          <button
-            @click="setWinner(winner, true)"
-            :class="['px-2 py-1 rounded mr-2', { 'bg-green-700': selectedWinner[winner] === true }]"
-          >
-            Yes
-          </button>
-          <button
-            @click="setWinner(winner, false)"
-            :class="['px-2 py-1 rounded mr-2', { 'bg-red-700': selectedWinner[winner] === false }]"
-          >
-            No
-          </button>
           <input
             type="number"
             v-model="amounts[winner]"
@@ -172,6 +162,15 @@ async function setMessage(winner: string, choice: string, amount: number) {
     </div>
   </div>
 
+  <div class="text-white">{{ outcome }}</div>
+  <input
+    type="text"
+    placeholder="Outcome"
+  />
+  <AppButton type="submit" variant="primary"  @click="setOutcome(outcome)">
+    <span>Admin: Set Outcome</span>
+  </AppButton>
+
       <div v-if="errors.length > 0" class="text-red-500 px-3 mt-5 rounded-xl-sm">
         <span class="font-bold">Errors:</span>
         <ul class="list-disc px-8">
@@ -179,6 +178,41 @@ async function setMessage(winner: string, choice: string, amount: number) {
         </ul>
       </div>
   </section>
+  <h2 class="capitalize text-xl text-white font-bold mb-4">All bets</h2>
+  <div class="message p-6 mb-6 rounded-xl border-2 border-gray-300" v-if="!isLoading">
+    <div v-if="allBetsVal.length > 0">
+      <div v-for="(bet, index) in allBetsVal" :key="index" class="flex items-center justify-between mb-2">
+        <h2 class="text-lg lg:text-lg m-0">{{ bet }}</h2>
+      </div>
+    </div>
+    <div v-else>
+      <p>No bets found.</p>
+    </div>
+  </div>
+
+  <h2 class="capitalize text-xl text-white font-bold mb-4">My Bets</h2>
+  <div class="message p-6 mb-6 rounded-xl border-2 border-gray-300" v-if="!isLoading">
+    <div v-if="myBetsVal.length > 0">
+      <div v-for="(bet, index) in myBetsVal" :key="index" class="flex items-center justify-between mb-2">
+        <h2 class="text-lg lg:text-lg m-0">{{ bet }}</h2>
+        <button 
+          class="ml-4 bg-blue-500 text-white px-4 py-2 rounded"
+          @click="claimFunds(index)" 
+        >
+          Claim
+        </button>
+      </div>
+    </div>
+    <div v-else>
+      <p>No bets found.</p>
+    </div>
+  </div>
+  <div v-else>
+    <div class="message p-6 pt-4 mb-6 rounded-xl border-2 border-gray-300">
+      <MessageLoader />
+    </div>
+  </div>
+
   <section class="pt-5" v-else>
     <h2 class="capitalize text-white text-2xl font-bold mb-4">Invalid network detected</h2>
     <p class="text-white text-base mb-20">
