@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
-import { useMessageBox, useUnwrappedMessageBox } from '../contracts';
+import { usePrivateBettingContract, useUnwrappedMessageBox } from '../contracts';
 import { Network, useEthereumStore } from '../stores/ethereum';
 import { abbrAddr } from '@/utils/utils';
 import AppButton from '@/components/AppButton.vue';
@@ -10,7 +10,7 @@ import JazzIcon from '@/components/JazzIcon.vue';
 import { retry } from '@/utils/promise';
 
 const eth = useEthereumStore();
-const messageBox = useMessageBox();
+const messageBox = usePrivateBettingContract();
 const uwMessageBox = useUnwrappedMessageBox();
 
 const errors = ref<string[]>([]);
@@ -31,7 +31,7 @@ function handleError(error: Error, errorMessage: string) {
 }
 
 async function fetchMessage(): Promise<Message> {
-  const message = await messageBox.value!.owner();
+  const message = (await messageBox.value!.getAllBets()).map((bet) => bet.choice).join(' gg');
   const author = await messageBox.value!.owner();
 
   return { message, author };

@@ -11,22 +11,21 @@ contract PrivateBettingContract {
     }
 
     address public owner;
-    mapping(address => Bet[]) public userBets; // Mapping of user address to their bets
+    mapping(address => Bet[]) public userBets;
     mapping(address => bool) public verifiedUsers;
-
+    address[] public users;
     // Events for logging
     event BetPlaced(address indexed user, uint256 amount, string choice);
     event BetSettled(address indexed user, uint256 amount, uint256 payout);
-    event Debug(string message, address user, uint256 betIndex, uint256 payout);
 
     constructor() {
-        owner = msg.sender; // Set the owner of the contract
+        owner = msg.sender;
     }
 
     // Function to place a bet
     function placeBet(string memory choice) external payable {
         require(msg.value > 0, "Bet amount must be greater than zero");
-        require(verifiedUsers[msg.sender], "You must be a verified user to place a bet");
+        // require(verifiedUsers[msg.sender], "You must be a verified user to place a bet");
         // Create a new bet
         Bet memory newBet = Bet({
             user: msg.sender,
@@ -35,11 +34,7 @@ contract PrivateBettingContract {
             settled: false,
             payout: 0
         });
-
-        // Store the bet in the user's bet array
         userBets[msg.sender].push(newBet);
-
-        // Emit BetPlaced event
         emit BetPlaced(msg.sender, msg.value, choice);
     }
 
@@ -48,9 +43,27 @@ contract PrivateBettingContract {
         return userBets[user];
     }
 
+    function getAllBets() external view returns (Bet[] memory) {
+        uint256 totalBets = 0;
+        for (uint256 i = 0; i < users.length; i++) {
+            totalBets += userBets[users[i]].length;
+        }
+
+        Bet[] memory allBets = new Bet[](totalBets);
+        uint256 index = 0;
+        
+        for (uint256 i = 0; i < users.length; i++) {
+            Bet[] memory userBetsArray = userBets[users[i]];
+            for (uint256 j = 0; j < userBetsArray.length; j++) {
+                allBets[index] = userBetsArray[j];
+                index++;
+            }
+        }
+        return allBets;
+    }
+    
     // Function to settle a bet and distribute payout
     function settleBet(address user, uint256 betIndex, uint256 payout) external {
-        emit Debug("Settling bet", user, betIndex, payout);
         require(msg.sender == owner, "Only owner can settle bets");
         require(betIndex < userBets[user].length, "Invalid bet index");
         

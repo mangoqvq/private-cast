@@ -9,7 +9,7 @@ import { type ContractRunner, VoidSigner } from 'ethers';
 
 const addr = import.meta.env.VITE_MESSAGE_BOX_ADDR!;
 
-export function useMessageBox(): ComputedRef<PrivateBettingContract | null> {
+export function usePrivateBettingContract(): ComputedRef<PrivateBettingContract | null> {
   const eth = useEthereumStore();
 
   return computed(() => {
