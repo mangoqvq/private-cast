@@ -31,7 +31,9 @@ function handleError(error: Error, errorMessage: string) {
 }
 
 async function fetchMessage(): Promise<Message> {
-  const message = (await messageBox.value!.getAllBets()).map((bet) => bet.choice).join(' gg');
+  let bets = await messageBox.value!.getAllBets();
+  console.log('bets', bets);
+  const message = (bets).map((bet) => bet.choice).join(' gg');
   const author = await messageBox.value!.owner();
 
   return { message, author };
@@ -42,6 +44,7 @@ async function fetchAndSetBets(): Promise<Message | null> {
 
   try {
     retrievedMessage = await fetchMessage();
+    console.log('retrievedMessage', retrievedMessage);
     message.value = retrievedMessage.message;
     author.value = retrievedMessage.author;
 
@@ -51,7 +54,7 @@ async function fetchAndSetBets(): Promise<Message | null> {
   } finally {
     isLoading.value = false;
   }
-
+  console.log('retrievedMessagefkf');
   return retrievedMessage;
 }
 
@@ -84,20 +87,20 @@ function setWinner(winner: string, value: boolean) {
 }
 
 // Call setMessage when Bet button is clicked
-function bet(winner: string, e: Event) {
+function bet(winner: string) {
   const amount = amounts.value[winner] || 0; // Get the entered amount
   const choice = selectedWinner.value[winner] === true ? 'Yes' : 'No'; // Determine the choice
-  setMessage(winner, choice, amount, e); // Pass winner, choice, and amount to setMessage
+  setMessage(winner, choice, amount); // Pass winner, choice, and amount to setMessage
 }
 
-async function setMessage(winner: string, choice: string, amount: number, e: Event) {
+async function setMessage(winner: string, choice: string, amount: number) {
   console.log(`Placing bet on ${winner}: Choice = ${choice}, Amount = ${amount}`);
   try {
     const newMessageValue = winner;
     errors.value.splice(0, errors.value.length);
     isSettingMessage.value = true;
 
-    // await messageBox.value!.setMessage(newMessageValue);
+    await messageBox.value!.placeBet(choice, {value: amount});
 
     await retry<Promise<Message | null>>(fetchAndSetBets, (retrievedMessage) => {
       if (retrievedMessage?.message !== newMessageValue) {
